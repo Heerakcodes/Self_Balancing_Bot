@@ -8,6 +8,14 @@ private:
     int dirPin;
     int enablePin;
 
+    int currentSpeed;
+    int maxSpeed;
+
+    bool directionInverted;
+    bool currentDirection;
+
+    unsigned long lastStepTime;
+
 public:
     StepperMotor(int stepPin, int dirPin, int enablePin);
 
@@ -17,9 +25,16 @@ public:
     void disable();
 
     void setDirection(bool direction);
+    void setDirectionInverted(bool inverted);
 
-    void moveSteps(int steps, int speed);
+    void setSpeed(int speed);
+    void setMaxSpeed(int speed);
+
+    void run();
+
     void stop();
+
+    bool isRunning();
 };
 
 #endif
