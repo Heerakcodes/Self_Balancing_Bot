@@ -4,13 +4,19 @@
 #include <Arduino.h>
 #include <Wire.h>
 
-class IMUSensor
-{
+class IMUSensor{
 private:
     uint8_t address;
 
     float angle;
     float gyroRate;
+
+    float accAngle;
+    float alpha;
+
+    float gyroOffsetX;
+    float gyroOffsetY;
+    float gyroOffsetZ;
 
     unsigned long lastTime;
 
@@ -22,6 +28,7 @@ public:
     IMUSensor();
 
     void begin();
+    void calibrateGyro();
     void update();
 
     float getAngle();
