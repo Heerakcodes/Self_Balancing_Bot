@@ -1,7 +1,7 @@
 #ifndef BALANCE_CONTROLLER_H
 #define BALANCE_CONTROLLER_H
 
-class PIDController{
+class BalanceController{
 private:
   float Kp;
   float Ki;
@@ -14,7 +14,7 @@ private:
   float integralMax;
 
 public:
-  PIDController(float Kp, float Ki, float  Kd);
+  BalanceController(float Kp, float Ki, float  Kd);
 
   void setTarget(float target);
 

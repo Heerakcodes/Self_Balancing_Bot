@@ -4,7 +4,7 @@
 
 #include <Arduino.h>
 
-class StepperMotor
+class MotionController
 {
 private:
     uint8_t stepPin;
@@ -19,9 +19,9 @@ private:
     unsigned long stepInterval;
 
 public:
-    StepperMotor(uint8_t stepPin,
-                 uint8_t dirPin,
-                 uint8_t enablePin);
+    MotionController(uint8_t stepPin,
+                     uint8_t dirPin,
+                     uint8_t enablePin);
 
     void begin();
     void enable();
