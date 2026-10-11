@@ -1,139 +1,62 @@
-
 #include "BalanceController.h"
-#include <Arduino.h>
 
-BalanceController::BalanceController()
-{
-    Kp = 0.0f;
-    Ki = 0.0f;
-    Kd = 0.0f;
+BalanceController::BalanceController(float Kp, float Ki , float Kd){
+  this->Kp = Kp;
+  this->Ki = Ki;
+  this->Kd = Kd;
 
-    targetAngle = 0.0f;
-    angleError = 0.0f;
+  targetAngle =0.0;
+  integral =0.0;
+  outputMin= -1000.0;
+  outputMax= 1000.0;
 
-    integral = 0.0f;
-    integralLimit = 100.0f;
-
-    maxOutput = 1000.0f;
-    output = 0.0f;
-
-    previousTime = 0;
-    firstUpdate = true;
+  integralMin= -100.0;
+  integralMax= 100.0;
 }
 
-void BalanceController::begin()
-{
-    reset();
+void BalanceController::setTarget(float target){
+  targetAngle = target;
+}
+void BalanceController::setOutputLimits(float minOutput, float maxOutput){
+  outputMin = minOutput;
+  outputMax = maxOutput;
+}
+void BalanceController::setIntegralLimits(float minIntegral, float maxIntegral){
+  integralMin = minIntegral;
+  integralMax = maxIntegral;
+}
+float BalanceController::compute(float currentAngle, float gyroRate, float dt){
+  if(dt <= 0.0){
+    return 0.0;
+  }
+  float error = targetAngle - currentAngle;
+  float P = Kp * error;
+  integral += error*dt;
+  if(integral > integralMax){
+    integral = integralMax;
+  }
+  if(integral < integralMin){
+    integral = integralMin;
+  }
+  float I = Ki*integral;
+  float D = -Kd*gyroRate;
+  float output = P+I+D;
+  if(output>outputMax){
+    output = outputMax;
+  }
+  if(output< outputMin){
+    output = outputMin;
+  }
+  return output;
 }
 
-void BalanceController::setPID(float kp, float ki, float kd)
-{
-    Kp = kp;
-    Ki = ki;
-    Kd = kd;
+float BalanceController::getKp(){
+  return Kp;
 }
 
-void BalanceController::setTargetAngle(float angle)
-{
-    targetAngle = angle;
+float  BalanceController::getKi(){
+  return Ki;
 }
-
-void BalanceController::setOutputLimit(float limit)
-{
-    if (limit > 0.0f)
-    {
-        maxOutput = limit;
-    }
-}
-
-void BalanceController::reset()
-{
-    integral = 0.0f;
-    angleError = 0.0f;
-    output = 0.0f;
-
-    previousTime = micros();
-    firstUpdate = true;
-}
-
-float BalanceController::update(
-    float currentAngle,
-    float gyroRate)
-{
-    unsigned long currentTime = micros();
-
-    if (firstUpdate)
-    {
-        previousTime = currentTime;
-        firstUpdate = false;
-        return output;
-    }
-
-    float dt =
-        (currentTime - previousTime) / 1000000.0f;
-
-    previousTime = currentTime;
-
-    // Reject invalid or excessively delayed updates.
-    if (dt <= 0.0f || dt > 0.05f)
-    {
-        integral = 0.0f;
-        output = 0.0f;
-        return output;
-    }
-
-    // Positive error means the measured angle
-    // is below the target angle.
-    angleError = targetAngle - currentAngle;
-
-    // Calculate the proposed integral.
-    float proposedIntegral = integral + angleError * dt;
-
-    if (proposedIntegral > integralLimit)
-        proposedIntegral = integralLimit;
-
-    if (proposedIntegral < -integralLimit)
-        proposedIntegral = -integralLimit;
-
-    // PID terms.
-    float pTerm = Kp * angleError;
-    float dTerm = -Kd * gyroRate;
-
-    // Candidate output including integral action.
-    float candidateOutput =
-        pTerm + (Ki * proposedIntegral) + dTerm;
-
-    // Basic anti-windup: do not accumulate more
-    // integral when the output is saturated in
-    // the same direction as the error.
-    bool pushingFurtherIntoSaturation =
-        (candidateOutput > maxOutput && angleError > 0.0f) ||
-        (candidateOutput < -maxOutput && angleError < 0.0f);
-
-    if (!pushingFurtherIntoSaturation)
-    {
-        integral = proposedIntegral;
-    }
-
-    // Recalculate using the accepted integral.
-    output = pTerm + (Ki * integral) + dTerm;
-
-    // Limit the correction.
-    if (output > maxOutput)
-        output = maxOutput;
-
-    if (output < -maxOutput)
-        output = -maxOutput;
-
-    return output;
-}
-
-float BalanceController::getOutput()
-{
-    return output;
-}
-
-float BalanceController::getError()
-{
-    return angleError;
+float BalanceController::getKd(){
+  return Kd;
 }

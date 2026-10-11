@@ -1,41 +1,35 @@
-
 #ifndef BALANCE_CONTROLLER_H
 #define BALANCE_CONTROLLER_H
 
-class BalanceController
-{
+class PIDController{
 private:
-    float Kp;
-    float Ki;
-    float Kd;
-
-    float targetAngle;
-    float angleError;
-
-    float integral;
-    float integralLimit;
-
-    float maxOutput;
-    float output;
-
-    unsigned long previousTime;
-    bool firstUpdate;
+  float Kp;
+  float Ki;
+  float Kd;
+  float targetAngle;
+  float integral;
+  float outputMin;
+  float outputMax;
+  float integralMin;
+  float integralMax;
 
 public:
-    BalanceController();
+  PIDController(float Kp, float Ki, float  Kd);
 
-    void begin();
+  void setTarget(float target);
 
-    void setPID(float kp, float ki, float kd);
-    void setTargetAngle(float angle);
-    void setOutputLimit(float limit);
+  void setOutputLimits(float minOutput, float maxOutput);
 
-    void reset();
+  void setIntegralLimits(float minIntegral, float maxIntegral);
 
-    float update(float currentAngle, float gyroRate);
+  float compute(float currentAngle, float gyroRate, float dt);
 
-    float getOutput();
-    float getError();
+  void reset();
+
+  float getKp();
+  float getKi();
+  float getKd();
+
 };
 
 #endif
